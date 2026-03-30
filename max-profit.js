@@ -1,45 +1,75 @@
-
-
-function maxProfit(n) {
+function maxProfitDP(n) {
   const buildings = [
-    { name: 'T', time: 5, earn: 3000 },
-    { name: 'P', time: 4, earn: 4500 },
-    { name: 'C', time: 10, earn: 16500 }
+    { type: "T", time: 5, earn: 1500 },
+    { type: "P", time: 4, earn: 1000 },
+    { type: "C", time: 10, earn: 2000 },
   ];
 
+  const dp = new Array(n + 1).fill(-Infinity);
 
-  const dp = Array(n + 1).fill(0);
-  const choice = Array(n + 1).fill(null);
+  
+  const count = new Array(n + 1).fill(null);
 
-  for (let i = 1; i <= n; i++) {
-    for (const b of buildings) {
-      if (i >= b.time) {
-        if (dp[i] < dp[i - b.time] + b.earn) {
-          dp[i] = dp[i - b.time] + b.earn;
-          choice[i] = b.name;
+  dp[0] = 0;
+  count[0] = { T: 0, P: 0, C: 0 };
+
+ 
+  for (let t = 1; t <= n; t++) {
+    for (let b of buildings) {
+      if (t >= b.time && dp[t - b.time] !== -Infinity) {
+        const currentProfit = dp[t - b.time] + (n - t) * b.earn;
+
+        if (currentProfit > dp[t]) {
+          dp[t] = currentProfit;
+
+          count[t] = {
+            ...count[t - b.time],
+            [b.type]: count[t - b.time][b.type] + 1,
+          };
         }
       }
     }
   }
 
-  const counts = { T: 0, P: 0, C: 0 };
-  let timeLeft = n;
-  while (timeLeft > 0 && choice[timeLeft]) {
-    const bName = choice[timeLeft];
-    const bTime = buildings.find(b => b.name === bName).time;
-    counts[bName]++;
-    timeLeft -= bTime;
+  let maxEarnings = 0;
+  let solutions = [];
+
+
+  for (let t = 1; t <= n; t++) {
+    if (dp[t] > maxEarnings) {
+      maxEarnings = dp[t];
+      solutions = [count[t]];
+    } else if (dp[t] === maxEarnings) {
+      solutions.push(count[t]);
+    }
   }
 
-  return { earnings: dp[n], solution: counts };
+
+  solutions.sort((a, b) => {
+    if (b.T !== a.T) return b.T - a.T;
+    if (b.P !== a.P) return b.P - a.P;
+    return b.C - a.C;
+  });
+
+
+  console.log("Earnings: $" + maxEarnings);
+  console.log("Solutions:");
+
+  solutions.forEach((sol, index) => {
+    console.log(`${index + 1}. T: ${sol.T} P: ${sol.P} C: ${sol.C}`);
+  });
 }
 
 
-const testCases = [7, 8, 13];
-for (const n of testCases) {
-  const { earnings, solution } = maxProfit(n);
-  console.log(`Time Unit: ${n}`);
-  console.log(`Earnings: $${earnings}`);
-  console.log(`Solutions: T:${solution.T} P:${solution.P} C:${solution.C}`);
-  console.log('-----------------------');
-}
+console.log("Test Case 1");
+maxProfitDP(7);
+
+console.log("-----");
+
+console.log("Test Case 2");
+maxProfitDP(8);
+
+console.log("-----");
+
+console.log("Test Case 3");
+maxProfitDP(13);
